@@ -7,8 +7,8 @@ import edu.princeton.cs.algs4.StdOut;
 /**
  * Created by spec on 02.05.2017.
  */
-public class Solver {
-    private Stack<Board> solutionBoards;
+public final class Solver {
+    private final Stack<Board> solutionBoards;
 
 
     public Solver(Board initial) {
@@ -37,20 +37,18 @@ public class Solver {
                     searchNodesMod.insert(new SearchNode(board, searchNodeMod));
             previousNodeMod = searchNodeMod;
         }
-        if (searchNodesMod.min().board.isGoal())
-            solutionBoards = null; // no solution
-        else {
-            SearchNode current = searchNodes.min();
-            while (current != null) {
-                solutionBoards.push(current.board);
-                current = current.prevNode;
-            }
+        if (searchNodesMod.min().board.isGoal()) return;
+
+        SearchNode current = searchNodes.min();
+        while (current != null) {
+            solutionBoards.push(current.board);
+            current = current.prevNode;
         }
     }
 
     public static void main(String[] args) {
         // create initial board from file
-        In in = new In("8puzzle/puzzle2x2-unsolvable1.txt");
+        In in = new In("8puzzle/puzzle07.txt");
         int n = in.readInt();
         int[][] blocks = new int[n][n];
         for (int i = 0; i < n; i++)
@@ -72,32 +70,36 @@ public class Solver {
     }
 
     public int moves() {
-        return solutionBoards.size();
+        return solutionBoards.size() - 1;
     }
 
     public Iterable<Board> solution() {
-        return solutionBoards;
+        if (isSolvable()) return solutionBoards;
+        return null;
     }
 
     public boolean isSolvable() {
-        return solutionBoards != null;
+        return !solutionBoards.isEmpty();
     }
 
     private class SearchNode implements Comparable<SearchNode> {
         private final Board board;
         private final SearchNode prevNode;
         private int moves;
+        private int manhattan;
 
         public SearchNode(Board board, SearchNode prevNode) {
             this.board = board;
             this.prevNode = prevNode;
+            this.manhattan = board.manhattan();
             if (prevNode != null) moves = prevNode.moves + 1;
             else moves = 0;
         }
 
         @Override
         public int compareTo(SearchNode that) {
-            return (this.board.manhattan() + this.moves) - (that.board.manhattan() + that.moves);
+            int priorityDiff = (this.manhattan + this.moves) - (that.manhattan + that.moves);
+            return  priorityDiff == 0 ? this.manhattan - that.manhattan : priorityDiff;
         }
     }
 }

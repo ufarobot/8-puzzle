@@ -12,7 +12,7 @@ public final class Board {
     }
 
     public static void main(String[] args) {
-        Board board = new Board(new int[][]{{1,2,3}, {4,0,6},{7,8,5}});
+        Board board = new Board(new int[][]{{1, 2, 3}, {4, 0, 6}, {7, 8, 5}});
         System.out.println(board.toString());
         for (Board board1 :
                 board.neighbors()) {
@@ -50,6 +50,9 @@ public final class Board {
 
     @Override
     public boolean equals(Object obj) {
+        if (obj == this) return true;
+        if (obj == null) return false;
+        if (obj.getClass() != this.getClass()) return false;
         Board that = (Board) obj;
         return Arrays.deepEquals(this.blocks, that.blocks);
     }
