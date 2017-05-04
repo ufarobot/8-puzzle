@@ -9,46 +9,39 @@ import edu.princeton.cs.algs4.StdOut;
  */
 public final class Solver {
     private final Stack<Board> solutionBoards;
+    private boolean isSolvable;
 
 
     public Solver(Board initial) {
         if (initial == null) throw new NullPointerException();
-
+        isSolvable = false;
         solutionBoards = new Stack<>();
         MinPQ<SearchNode> searchNodes = new MinPQ<>();
-        MinPQ<SearchNode> searchNodesMod = new MinPQ<>();
 
         searchNodes.insert(new SearchNode(initial, null));
-        searchNodesMod.insert(new SearchNode(initial.twin(), null));
+        searchNodes.insert(new SearchNode(initial.twin(), null));
 
-        SearchNode previousNode = null;
-        SearchNode previousNodeMod = null;
-
-        while (!searchNodes.min().board.isGoal() && !searchNodesMod.min().board.isGoal()) {
+        while (!searchNodes.min().board.isGoal()) {
             SearchNode searchNode = searchNodes.delMin();
             for (Board board : searchNode.board.neighbors())
-                if (previousNode == null || previousNode != null && !previousNode.equals(board))
+                if (searchNode.prevNode == null || searchNode.prevNode != null && !searchNode.prevNode.board.equals(board))
                     searchNodes.insert(new SearchNode(board, searchNode));
-            previousNode = searchNode;
-
-            SearchNode searchNodeMod = searchNodesMod.delMin();
-            for (Board board : searchNodeMod.board.neighbors())
-                if (previousNodeMod == null || previousNodeMod != null && !previousNodeMod.equals(board))
-                    searchNodesMod.insert(new SearchNode(board, searchNodeMod));
-            previousNodeMod = searchNodeMod;
         }
-        if (searchNodesMod.min().board.isGoal()) return;
 
         SearchNode current = searchNodes.min();
-        while (current != null) {
+        while (current.prevNode != null) {
             solutionBoards.push(current.board);
             current = current.prevNode;
         }
+        solutionBoards.push(current.board);
+
+        if (current.board.equals(initial)) isSolvable = true;
+
     }
 
     public static void main(String[] args) {
         // create initial board from file
-        In in = new In("8puzzle/puzzle07.txt");
+        In in = new In("8puzzle/puzzle3x3-unsolvable1.txt");
         int n = in.readInt();
         int[][] blocks = new int[n][n];
         for (int i = 0; i < n; i++)
@@ -70,6 +63,7 @@ public final class Solver {
     }
 
     public int moves() {
+        if (!isSolvable()) return -1;
         return solutionBoards.size() - 1;
     }
 
@@ -79,7 +73,7 @@ public final class Solver {
     }
 
     public boolean isSolvable() {
-        return !solutionBoards.isEmpty();
+        return isSolvable;
     }
 
     private class SearchNode implements Comparable<SearchNode> {
